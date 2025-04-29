@@ -6,8 +6,8 @@ import { join } from 'path';
 export const mailerConfig = (configService: ConfigService): MailerOptions => ({
   transport: {
     host: configService.get('MAIL_HOST'),
-    port: configService.get('MAIL_PORT'),
-    secure: false,
+    port: 465,
+    secure: true,
     auth: {
       user: configService.get('MAIL_USER'),
       pass: configService.get('MAIL_PASS'),
