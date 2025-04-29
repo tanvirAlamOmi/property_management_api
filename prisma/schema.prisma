@@ -1,0 +1,175 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+  AGENT
+  OWNER
+}
+
+enum IsPublished {
+  DRAFT
+  PUBLISHED
+}
+
+enum Furnishing {
+  FURNISHED
+  UNFURNISHED
+  PARTIALLY_FURNISHED
+}
+
+enum RoadAccess {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  password  String
+  role      Role       @default(ADMIN)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  sessions  Session[]
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  token     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model VerificationCode {
+  id        Int      @id @default(autoincrement())
+  email     String
+  code      String
+  type      String   // 'register' or 'reset'
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  subcategories Subcategory[]
+  properties    Property[]
+}
+
+model Subcategory {
+  id          Int        @id @default(autoincrement())
+  name        String
+  categoryId  Int
+  category    Category   @relation(fields: [categoryId], references: [id])
+  properties  Property[]
+}
+
+model OwnershipType {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  properties  Property[]
+}
+
+model TransactionType {
+  id              Int        @id @default(autoincrement())
+  name            String     @unique
+  propertyStatus  PropertyStatus[]
+  properties      Property[]
+}
+
+model PropertyStatus {
+  id                  Int        @id @default(autoincrement())
+  name                String
+  transactionTypeId   Int
+  transactionType     TransactionType   @relation(fields: [transactionTypeId], references: [id])
+  properties  Property[]
+}
+
+model BuildingPermit {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  properties  Property[]
+}
+
+model Zone {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  properties  Property[]
+}
+
+model ParkingSpace {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  properties  Property[]
+}
+
+model Property {
+  id                Int             @id @default(autoincrement())
+  title             String
+  categoryId        Int
+  category          Category        @relation(fields: [categoryId], references: [id])
+  subcategoryId     Int
+  subcategory       Subcategory     @relation(fields: [subcategoryId], references: [id])
+  ownershipTypeId   Int
+  ownershipType     OwnershipType   @relation(fields: [ownershipTypeId], references: [id])
+  transactionTypeId Int
+  transactionType   TransactionType @relation(fields: [transactionTypeId], references: [id])
+  propertyStatusId  Int
+  PropertyStatus    PropertyStatus? @relation(fields: [propertyStatusId], references: [id])
+  buildingPermitId  Int
+  buildingPermit    BuildingPermit? @relation(fields: [buildingPermitId], references: [id])
+
+  address           String
+  location          String
+  zipCode           String
+  googleMapLink     String?
+  roadAccess        RoadAccess
+  nearbyPoints      String[]        
+  zoneId            Int
+  zone              Zone? @relation(fields: [zoneId], references: [id])
+
+  landSize          String?
+  builtUpArea       String?
+  pricePerUnit      Float?
+  totalPrice        Float?
+  numberOfFloors    Int?
+  maxRooms          Int?
+  beds              Int?
+  baths             Int?
+  furnishing        Furnishing?
+  buildingYear      String?
+  availableDate     String?
+  parkingSpaceId    Int
+  parkingSpace      ParkingSpace? @relation(fields: [parkingSpaceId], references: [id])
+
+  description       String?
+  images            String[]        // Store image URLs or paths
+  videoLink         String?
+
+  livingSpace       Json?           // { enclosed: boolean, openPlan: boolean, ac: boolean, noAc: boolean }
+  kitchen           Json?           // { fullyEquipped: boolean, fridge: boolean, oven: boolean, stove: boolean }
+  utilitiesIncluded Json?           // { electric: boolean, water: boolean, wifi: boolean }
+  servicesIncluded  Json?           // { cleaning: boolean, abcd: boolean }
+  additionalFeatures Json?           // { cctv: boolean, swimmingPool: boolean, ... }
+
+  status            IsPublished     @default(DRAFT)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
