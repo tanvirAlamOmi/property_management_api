@@ -1,6 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { MailerOptions } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { join } from 'path';
 
 export const mailerConfig = (configService: ConfigService): MailerOptions => ({
   transport: {
@@ -16,7 +17,7 @@ export const mailerConfig = (configService: ConfigService): MailerOptions => ({
     from:  configService.get('MAIL_FROM'),
   },
   template: {
-    dir: process.cwd() + '/templates/',
+    dir: join(__dirname, '..', '..', 'templates'),
     adapter: new HandlebarsAdapter(),
     options: {
       strict: true,
