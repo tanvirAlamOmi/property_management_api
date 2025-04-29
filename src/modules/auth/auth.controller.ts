@@ -6,7 +6,7 @@ import { RegisterDto, VerifyCodeDto, verifyMailDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto, VerifyResetCodeDto, verifyResetMailDto } from './dto/reset-password.dto';
 import { LogoutDto } from './dto/logout.dto';
-import { Public } from 'src/common/decorators/public.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
