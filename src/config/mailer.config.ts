@@ -14,7 +14,7 @@ export const mailerConfig = (configService: ConfigService): MailerOptions => ({
     },
   },
   defaults: {
-    from:  configService.get('MAIL_FROM'),
+    from:  '"iListed" <flatwisebd@gmail.com>',
   },
   template: {
     dir: join(__dirname, '..', '..', 'templates'),
