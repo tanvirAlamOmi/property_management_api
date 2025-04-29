@@ -21,7 +21,7 @@ export class AuthService {
     const { email } = dto;
 
     if (!this.validateEmail(email)) {
-      throw new BadRequestException('Invalid email format');
+      throw new BadRequestException('Please enter a valid email');
     }
 
     const existingUser = await this.prisma.user.findUnique({ where: { email } });
@@ -47,13 +47,16 @@ export class AuthService {
     const { email, code } = dto;
 
     const verification = await this.prisma.verificationCode.findFirst({
-      where: { email, code, type: 'register', expiresAt: { gt: new Date() } },
+      where: { email, code, type: 'register' },
     });
-
+    
     if (!verification) {
-      throw new BadRequestException('Invalid or expired verification code');
+      throw new BadRequestException('The code you entered is incorrect');
     }
 
+    if (verification.expiresAt <= new Date()) {
+      throw new BadRequestException('The code you entered has expired');
+    }
     return 'Verification code validated';
   }
 
@@ -61,11 +64,15 @@ export class AuthService {
     const { email, code, password, role } = dto;
  
     const verification = await this.prisma.verificationCode.findFirst({
-      where: { email, code, type: 'register', expiresAt: { gt: new Date() } },
+      where: { email, code, type: 'register' },
     });
-
+    
     if (!verification) {
-      throw new BadRequestException('Invalid or expired verification code');
+      throw new BadRequestException('The code you entered is incorrect');
+    }
+
+    if (verification.expiresAt <= new Date()) {
+      throw new BadRequestException('The code you entered has expired');
     }
 
     if (!PasswordHelper.validatePassword(password)) {
@@ -94,12 +101,12 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Please enter a valid email');
     }
 
     const isPasswordValid = await PasswordHelper.comparePassword(password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Incorrect password');
     }
 
     const token = await this.generateToken(user.id, user.email, user.role);
@@ -161,11 +168,15 @@ export class AuthService {
     const { email, code } = dto;
 
     const verification = await this.prisma.verificationCode.findFirst({
-      where: { email, code, type: 'reset', expiresAt: { gt: new Date() } },
+      where: { email, code, type: 'register' },
     });
-
+    
     if (!verification) {
-      throw new BadRequestException('Invalid or expired verification code');
+      throw new BadRequestException('The code you entered is incorrect');
+    }
+
+    if (verification.expiresAt <= new Date()) {
+      throw new BadRequestException('The code you entered has expired');
     }
 
     return 'Reset code validated';
@@ -175,11 +186,15 @@ export class AuthService {
     const { email, code, password } = dto;
 
     const verification = await this.prisma.verificationCode.findFirst({
-      where: { email, code, type: 'reset', expiresAt: { gt: new Date() } },
+      where: { email, code, type: 'register' },
     });
-
+    
     if (!verification) {
-      throw new BadRequestException('Invalid or expired verification code');
+      throw new BadRequestException('The code you entered is incorrect');
+    }
+
+    if (verification.expiresAt <= new Date()) {
+      throw new BadRequestException('The code you entered has expired');
     }
 
     if (!PasswordHelper.validatePassword(password)) {
