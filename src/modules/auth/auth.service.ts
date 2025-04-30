@@ -176,7 +176,7 @@ export class AuthService {
     const { email, code } = dto;
 
     const verification = await this.prisma.verificationCode.findFirst({
-      where: { email, code, type: 'register' },
+      where: { email, code, type: 'reset' },
     });
     
     if (!verification) {
