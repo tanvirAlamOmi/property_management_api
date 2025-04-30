@@ -5,7 +5,6 @@ export class verifyMailDto {
   @IsEmail()
   email: string;
 
-  @IsOptional()
   @IsEnum(Role)
   role: Role;
 }

@@ -29,9 +29,6 @@ export class AuthService {
       throw new BadRequestException('Email already registered');
     }
 
-console.log(role);
-console.log(Role.ADMIN);
-
     if(role !== Role.ADMIN) {
       throw new BadRequestException('Only ADMIN role is allowed for registration now');
     }
@@ -70,6 +67,10 @@ console.log(Role.ADMIN);
   async registration(dto: RegisterDto): Promise<{ token: string }> {
     const { email, code, password, role } = dto;
  
+    if(role !== Role.ADMIN) {
+      throw new BadRequestException('Only ADMIN role is allowed for registration now');
+    }
+    
     const verification = await this.prisma.verificationCode.findFirst({
       where: { email, code, type: 'register' },
     });
