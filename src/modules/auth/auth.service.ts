@@ -18,7 +18,7 @@ export class AuthService {
   ) {}
 
   async initiateRegister(dto: verifyMailDto): Promise<string> {
-    const { email } = dto;
+    const { email, role } = dto;
 
     if (!this.validateEmail(email)) {
       throw new BadRequestException('Please enter a valid email');
@@ -27,6 +27,13 @@ export class AuthService {
     const existingUser = await this.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       throw new BadRequestException('Email already registered');
+    }
+
+console.log(role);
+console.log(Role.ADMIN);
+
+    if(role !== Role.ADMIN) {
+      throw new BadRequestException('Only ADMIN role is allowed for registration now');
     }
 
     const code = this.generateVerificationCode();
