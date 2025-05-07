@@ -19,7 +19,7 @@ async function bootstrap() {
   //   prefix: '/api/v1/uploads',
   // });
 
-  app.use('api/v1/uploads', express.static(uploadDir));
+  app.use('/api/v1/uploads', express.static(uploadDir));
 
   app.enableCors();
   app.setGlobalPrefix('api/v1');
