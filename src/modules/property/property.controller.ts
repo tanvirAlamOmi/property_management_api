@@ -3,7 +3,7 @@ import { PropertyService } from './property.service';
 import { CreateDraftPropertyDto, CreatePropertyDto } from './dto/create-property.dto';
 import { ApiResponse } from '../../common/interfaces/api-response.interface';
 import { ResponseHelper } from '../../common/helpers/response.helper';
-import { ImageFilesInterceptor } from '../../common/intercepters/file-upload.interceptor
+import { ImageFilesInterceptor } from '../../common/intercepters/file-upload.interceptor';
 import { ListPropertiesDto } from './dto/list-properties.dto';
 import { UpdateDraftPropertyDto, UpdatePropertyDto } from './dto/update-property.dto';
 import { PropertyPublicationStatus } from '@prisma/client';
