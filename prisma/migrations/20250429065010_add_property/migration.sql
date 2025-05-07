@@ -5,7 +5,7 @@
 
 */
 -- CreateEnum
-CREATE TYPE "IsPublished" AS ENUM ('DRAFT', 'PUBLISHED');
+CREATE TYPE "PropertyPublicationStatus" AS ENUM ('DRAFT', 'PUBLISHED');
 
 -- CreateEnum
 CREATE TYPE "Furnishing" AS ENUM ('FURNISHED', 'UNFURNISHED', 'PARTIALLY_FURNISHED');
@@ -130,7 +130,7 @@ CREATE TABLE "Property" (
     "utilitiesIncluded" JSONB,
     "servicesIncluded" JSONB,
     "additionalFeatures" JSONB,
-    "status" "IsPublished" NOT NULL DEFAULT 'DRAFT',
+    "status" "PropertyPublicationStatus" NOT NULL DEFAULT 'DRAFT',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

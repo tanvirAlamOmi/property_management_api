@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, HttpStatus, HttpCode, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ResponseHelper } from '../../common/helpers/response.helper';
 import { ApiResponse } from '../../common/interfaces/api-response.interface';
@@ -7,10 +7,20 @@ import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto, VerifyResetCodeDto, verifyResetMailDto } from './dto/reset-password.dto';
 import { LogoutDto } from './dto/logout.dto';
 import { Public } from '../../common/decorators/public.decorator';
+import { Role } from '@prisma/client';
+import { EnumHelper } from '../../common/helpers/enum.helper';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
+  @Public()
+  @Get('register/roles')
+  @HttpCode(HttpStatus.OK)
+  async getRoles(): Promise<ApiResponse<{ id: string; name: string }[]>> {
+    const roles = EnumHelper.enumToKeyValuePairs(Role);
+    return ResponseHelper.success(roles, 'Roles retrieved successfully');
+  }
 
   @Public()
   @Post('register/initiate')
@@ -73,13 +83,5 @@ export class AuthController {
   async refresh(@Body('refreshToken') refreshToken: string): Promise<ApiResponse<{ token: string }>> {
     const result = await this.authService.refreshToken(refreshToken);
     return ResponseHelper.success(result, 'Token refreshed');
-  }
-
-  @Post('profile')
-  @HttpCode(HttpStatus.OK)
-  async getProfile(@Request() req): Promise<ApiResponse<any>> {
-    const userId = req.user.sub;
-    const result = await this.authService.profile(userId);
-    return ResponseHelper.success(req.user, 'Profile retrieved');
-  }
+  } 
 }

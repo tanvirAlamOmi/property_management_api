@@ -20,22 +20,39 @@ enum Role {
   OWNER
 }
 
-enum IsPublished {
+enum PropertyPublicationStatus {
   DRAFT
   PUBLISHED
 }
 
-enum Furnishing {
-  FURNISHED
-  UNFURNISHED
-  PARTIALLY_FURNISHED
+enum ValidationCodeType {
+  RESET
+  REGISTER
 }
 
-enum RoadAccess {
-  EXCELLENT
-  GOOD
-  FAIR
-  POOR
+
+model Furnishing {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  properties    Property[]
+}
+
+model RoadAccess {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  properties    Property[]
+}
+
+model PoolType {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  properties    Property[]
+}
+
+model LandSize {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  properties    Property[]
 }
 
 model User {
@@ -61,7 +78,7 @@ model VerificationCode {
   id        Int      @id @default(autoincrement())
   email     String
   code      String
-  type      String   // 'register' or 'reset'
+  type      ValidationCodeType 
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
@@ -123,53 +140,61 @@ model ParkingSpace {
 model Property {
   id                Int             @id @default(autoincrement())
   title             String
-  categoryId        Int
-  category          Category        @relation(fields: [categoryId], references: [id])
-  subcategoryId     Int
-  subcategory       Subcategory     @relation(fields: [subcategoryId], references: [id])
-  ownershipTypeId   Int
-  ownershipType     OwnershipType   @relation(fields: [ownershipTypeId], references: [id])
-  transactionTypeId Int
-  transactionType   TransactionType @relation(fields: [transactionTypeId], references: [id])
-  propertyStatusId  Int
-  PropertyStatus    PropertyStatus? @relation(fields: [propertyStatusId], references: [id])
-  buildingPermitId  Int
+  categoryId        Int?
+  category          Category?        @relation(fields: [categoryId], references: [id])
+  subcategoryId     Int?
+  subcategory       Subcategory?    @relation(fields: [subcategoryId], references: [id])
+  ownershipTypeId   Int?
+  ownershipType     OwnershipType?   @relation(fields: [ownershipTypeId], references: [id])
+  transactionTypeId Int?
+  transactionType   TransactionType? @relation(fields: [transactionTypeId], references: [id])
+  propertyStatusId  Int?
+  propertyStatus    PropertyStatus? @relation(fields: [propertyStatusId], references: [id])
+  buildingPermitId  Int?
   buildingPermit    BuildingPermit? @relation(fields: [buildingPermitId], references: [id])
 
-  address           String
-  location          String
-  zipCode           String
+  address           String?
+  location          String?
+  zipCode           String?
   googleMapLink     String?
-  roadAccess        RoadAccess
+  roadAccessId      Int?
+  roadAccess        RoadAccess? @relation(fields: [roadAccessId], references: [id])
   nearbyPoints      String[]        
-  zoneId            Int
+  zoneId            Int?
   zone              Zone? @relation(fields: [zoneId], references: [id])
 
-  landSize          String?
-  builtUpArea       String?
+  landSizeId        Int?
+  landSize          LandSize? @relation(fields: [landSizeId], references: [id])
+  builtUpArea       Float?
   pricePerUnit      Float?
   totalPrice        Float?
+  pricePerYear      Float?
   numberOfFloors    Int?
   maxRooms          Int?
   beds              Int?
   baths             Int?
-  furnishing        Furnishing?
-  buildingYear      String?
+  furnishingId      Int?
+  furnishing        Furnishing? @relation(fields: [furnishingId], references: [id])
+  buildingYear      Int?
   availableDate     String?
-  parkingSpaceId    Int
+  parkingSpaceId    Int?
   parkingSpace      ParkingSpace? @relation(fields: [parkingSpaceId], references: [id])
+  pool              Boolean?        @default(false)
+  poolTypeId        Int?
+  poolType          PoolType? @relation(fields: [poolTypeId], references: [id])
+  poolSize          Float?
 
   description       String?
-  images            String[]        // Store image URLs or paths
+  images            String[]        
   videoLink         String?
 
-  livingSpace       Json?           // { enclosed: boolean, openPlan: boolean, ac: boolean, noAc: boolean }
-  kitchen           Json?           // { fullyEquipped: boolean, fridge: boolean, oven: boolean, stove: boolean }
-  utilitiesIncluded Json?           // { electric: boolean, water: boolean, wifi: boolean }
-  servicesIncluded  Json?           // { cleaning: boolean, abcd: boolean }
-  additionalFeatures Json?           // { cctv: boolean, swimmingPool: boolean, ... }
+  livingSpace        Json[]          
+  kitchen            Json[]           
+  utilitiesIncluded  Json[]           
+  servicesIncluded   Json[]           
+  additionalFeatures Json[]         
 
-  status            IsPublished     @default(DRAFT)
+  publicationStatus            PropertyPublicationStatus     @default(DRAFT)
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 }

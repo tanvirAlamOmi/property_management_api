@@ -7,12 +7,14 @@ import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { PropertyModule } from './property/property.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     AuthModule,
+    PropertyModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,4 +1,3 @@
-// prisma/seed.ts
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -37,7 +36,7 @@ async function main() {
   });
 
   const commercial = await prisma.category.upsert({
-    where: { name: 'Commercial' }, // Fixed "Resedential" typo to "Commercial"
+    where: { name: 'Commercial' },  
     update: {},
     create: {
       name: 'Commercial',
@@ -140,13 +139,73 @@ async function main() {
   }
 
   const zone = [
-    'Yellow',
-    'Green',
-    'Red',
+    'Green Zone',
+    'Yellow Zone',
+    'Red Zone',
+    'Pink Zone',
+    'Orange Zone',
+    'Blue Zone',
   ];
 
   for (const name of zone) {
     await prisma.zone.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+
+  const furnishing = [
+    'Furnished',
+    'Unfurnished'
+  ];
+
+  for (const name of furnishing) {
+    await prisma.furnishing.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+
+  const roadAccess = [
+    'Direct Public Road Access',
+    'Direct Private Road Access',
+    'Shared Access',
+    'Gated Access',
+    'No Direct Road Access' 
+  ];
+
+  for (const name of roadAccess) {
+    await prisma.roadAccess.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+
+
+  const poolType = [
+    'In-ground',
+    'Above-ground'
+  ];
+
+  for (const name of poolType) {
+    await prisma.poolType.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+
+  const landSize = [
+    'are (a)',
+    'm²',
+    'ft²'
+  ];
+
+  for (const name of landSize) {
+    await prisma.landSize.upsert({
       where: { name },
       update: {},
       create: { name },

@@ -3,11 +3,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import { PasswordHelper } from '../../common/helpers/password.helper';
-import { Role } from '@prisma/client';
+import { Role, ValidationCodeType } from '@prisma/client';
 import * as crypto from 'crypto';
 import { RegisterDto, VerifyCodeDto, verifyMailDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto, VerifyResetCodeDto, verifyResetMailDto } from './dto/reset-password.dto';
+import { validationError } from 'src/common/helpers/validation-error.helper';
 
 @Injectable()
 export class AuthService {
@@ -18,19 +19,20 @@ export class AuthService {
   ) {}
 
   async initiateRegister(dto: verifyMailDto): Promise<string> {
+    const template = 'verification';
     const { email, role } = dto;
 
     if (!this.validateEmail(email)) {
-      throw new BadRequestException('Please enter a valid email');
+      validationError('email', 'Please enter a valid email'); 
     }
 
     const existingUser = await this.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      throw new BadRequestException('Email already registered');
+      validationError('email', 'Email already registered'); 
     }
 
     if(role !== Role.ADMIN) {
-      throw new BadRequestException('Only ADMIN role is allowed for registration now');
+      validationError('role', 'Only ADMIN role is allowed for registration now'); 
     }
 
     const code = this.generateVerificationCode();
@@ -38,12 +40,12 @@ export class AuthService {
       data: {
         email,
         code,
-        type: 'register',
+        type: ValidationCodeType.REGISTER,
         expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
       },
     });
 
-    await this.sendVerificationEmail(email, code);
+    await this.sendVerificationEmail(email, code, template);
     return 'Verification code sent to email';
   }
 
@@ -51,15 +53,15 @@ export class AuthService {
     const { email, code } = dto;
 
     const verification = await this.prisma.verificationCode.findFirst({
-      where: { email, code, type: 'register' },
+      where: { email, code, type: ValidationCodeType.REGISTER },
     });
     
     if (!verification) {
-      throw new BadRequestException('The code you entered is incorrect');
+      validationError('code', 'The code you entered is incorrect'); 
     }
 
     if (verification.expiresAt <= new Date()) {
-      throw new BadRequestException('The code you entered has expired');
+      validationError('code', 'The code you entered has expired'); 
     }
     return 'Verification code validated';
   }
@@ -67,26 +69,29 @@ export class AuthService {
   async registration(dto: RegisterDto): Promise<{ token: string }> {
     const { email, code, password, role } = dto;
  
-    if(role !== Role.ADMIN) {
-      throw new BadRequestException('Only ADMIN role is allowed for registration now');
+    if(role !== Role.ADMIN) { 
+      validationError('role', 'Only ADMIN role is allowed for registration now'); 
+    }
+ 
+    const existingUser = await this.prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      validationError('email', 'Email already registered'); 
     }
     
     const verification = await this.prisma.verificationCode.findFirst({
-      where: { email, code, type: 'register' },
+      where: { email, code, type: ValidationCodeType.REGISTER },
     });
     
     if (!verification) {
-      throw new BadRequestException('The code you entered is incorrect');
+      validationError('code', 'The code you entered is incorrect');
     }
-
-    if (verification.expiresAt <= new Date()) {
-      throw new BadRequestException('The code you entered has expired');
+    
+    if (verification!.expiresAt <= new Date()) {
+      validationError('code', 'The code you entered has expired');
     }
 
     if (!PasswordHelper.validatePassword(password)) {
-      throw new BadRequestException(
-        'Password must be at least 8 characters long and contain at least one number or special character',
-      );
+      validationError('password', 'Password must be at least 8 characters long and contain at least one number or special character'); 
     }
 
     const hashedPassword = await PasswordHelper.hashPassword(password);
@@ -98,7 +103,7 @@ export class AuthService {
       },
     });
 
-    await this.prisma.verificationCode.deleteMany({ where: { email, type: 'register' } });
+    await this.prisma.verificationCode.deleteMany({ where: { email, type: ValidationCodeType.REGISTER } });
 
     const token = await this.generateToken(user.id, user.email, user.role);
     return { token };
@@ -109,19 +114,19 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) {
-      throw new UnauthorizedException('Please enter a valid email');
+      validationError('email', 'Email not found'); 
     }
 
     const isPasswordValid = await PasswordHelper.comparePassword(password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Incorrect password');
+      validationError('password', 'Incorrect password'); 
     }
 
     const token = await this.generateToken(user.id, user.email, user.role);
     const response: { token: string; refreshToken?: string } = { token };
 
     if (rememberMe) {
-      const refreshToken = await this.generateRefreshToken(user.id);
+      const refreshToken = await this.generateRefreshToken(user.id, true);
       response.refreshToken = refreshToken;
     }
 
@@ -147,15 +152,16 @@ export class AuthService {
   }
 
   async initiateResetPassword(dto: verifyResetMailDto): Promise<string> {
+    const template = 'reset-password';
     const { email } = dto;
 
     if (!this.validateEmail(email)) {
-      throw new BadRequestException('Invalid email format');
+      validationError('email', 'Invalid email format'); 
     }
 
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) {
-      throw new BadRequestException('Email not found');
+      validationError('email', 'Email not found'); 
     }
 
     const code = this.generateVerificationCode();
@@ -163,12 +169,12 @@ export class AuthService {
       data: {
         email,
         code,
-        type: 'reset',
+        type: ValidationCodeType.RESET,
         expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
       },
     });
 
-    await this.sendVerificationEmail(email, code);
+    await this.sendVerificationEmail(email, code, template);
     return 'Reset code sent to email';
   }
 
@@ -176,15 +182,15 @@ export class AuthService {
     const { email, code } = dto;
 
     const verification = await this.prisma.verificationCode.findFirst({
-      where: { email, code, type: 'reset' },
+      where: { email, code, type: ValidationCodeType.RESET },
     });
     
     if (!verification) {
-      throw new BadRequestException('The code you entered is incorrect');
+      validationError('code', 'The code you entered is incorrect'); 
     }
 
     if (verification.expiresAt <= new Date()) {
-      throw new BadRequestException('The code you entered has expired');
+      validationError('code', 'The code you entered has expired'); 
     }
 
     return 'Reset code validated';
@@ -194,21 +200,19 @@ export class AuthService {
     const { email, code, password } = dto;
 
     const verification = await this.prisma.verificationCode.findFirst({
-      where: { email, code, type: 'reset' },
+      where: { email, code, type: ValidationCodeType.RESET },
     });
     
     if (!verification) {
-      throw new BadRequestException('The code you entered is incorrect');
+      validationError('code', 'The code you entered is incorrect'); 
     }
 
     if (verification.expiresAt <= new Date()) {
-      throw new BadRequestException('The code you entered has expired');
+      validationError('code', 'The code you entered has expired'); 
     }
 
     if (!PasswordHelper.validatePassword(password)) {
-      throw new BadRequestException(
-        'Password must be at least 8 characters long and contain at least one number or special character',
-      );
+      validationError('password', 'Password must be at least 8 characters long and contain at least one number or special character'); 
     }
 
     const hashedPassword = await PasswordHelper.hashPassword(password);
@@ -217,7 +221,7 @@ export class AuthService {
       data: { password: hashedPassword },
     });
 
-    await this.prisma.verificationCode.deleteMany({ where: { email, type: 'reset' } });
+    await this.prisma.verificationCode.deleteMany({ where: { email, type: ValidationCodeType.RESET } });
 
     return 'Password reset successfully';
   }
@@ -229,7 +233,7 @@ export class AuthService {
     });
 
     if (!session) {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      validationError('refreshToken', 'Invalid or expired refresh token'); 
     }
 
     const newAccessToken = await this.generateToken(session.user.id, session.user.email, session.user.role);
@@ -246,10 +250,13 @@ export class AuthService {
     return this.jwtService.signAsync(payload);
   }
 
-  private async generateRefreshToken(userId: number): Promise<string> {
+  private async generateRefreshToken(userId: number, rememberMe = false): Promise<string> {
     const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    let expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
+    if (rememberMe) {
+      expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    }
     await this.prisma.session.create({
       data: {
         userId,
@@ -270,31 +277,12 @@ export class AuthService {
     return emailRegex.test(email);
   }
 
-  private async sendVerificationEmail(email: string, code: string): Promise<void> {
+  private async sendVerificationEmail(email: string, code: string, template: string): Promise<void> {
     await this.mailerService.sendMail({
       to: email,
       subject: 'Verification Code',
-      template: 'verification',
+      template: template,
       context: { code },
     });
-  }
-
-  async profile(userId: number): Promise<any> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-
-    return user;
-  }
+  } 
 }
