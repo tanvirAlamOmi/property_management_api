@@ -8,7 +8,7 @@ import * as crypto from 'crypto';
 import { RegisterDto, VerifyCodeDto, verifyMailDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto, VerifyResetCodeDto, verifyResetMailDto } from './dto/reset-password.dto';
-import { validationError } from 'src/common/helpers/validation-error.helper';
+import { validationError } from '../../common/helpers/validation-error.helper';
 
 @Injectable()
 export class AuthService {
