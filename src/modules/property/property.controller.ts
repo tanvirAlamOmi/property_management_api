@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, HttpCode, HttpStatus, UseGuards, UseInterceptors, UploadedFiles, BadRequestException, Query, Delete, Param, ParseIntPipe, Put } from '@nestjs/common';
 import { PropertyService } from './property.service';
 import { CreateDraftPropertyDto, CreatePropertyDto } from './dto/create-property.dto';
-import { ApiResponse } from 'src/common/interfaces/api-response.interface';
-import { ResponseHelper } from 'src/common/helpers/response.helper'; 
-import { ImageFilesInterceptor } from 'src/common/intercepters/file-upload.interceptor';
+import { ApiResponse } from '../../common/interfaces/api-response.interface';
+import { ResponseHelper } from '../../common/helpers/response.helper';
+import { ImageFilesInterceptor } from '../../common/intercepters/file-upload.interceptor
 import { ListPropertiesDto } from './dto/list-properties.dto';
 import { UpdateDraftPropertyDto, UpdatePropertyDto } from './dto/update-property.dto';
 import { PropertyPublicationStatus } from '@prisma/client';

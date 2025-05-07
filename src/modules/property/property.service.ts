@@ -6,7 +6,6 @@ import { ListPropertiesDto } from './dto/list-properties.dto';
 import { join } from 'path';
 import * as fs from 'fs';
 import { UpdateDraftPropertyDto, UpdatePropertyDto } from './dto/update-property.dto';
-import { EnumHelper } from 'src/common/helpers/enum.helper';
 import { validationError } from '../../common/helpers/validation-error.helper';
 
 @Injectable()
