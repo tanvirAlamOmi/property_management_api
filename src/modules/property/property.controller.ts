@@ -3,7 +3,7 @@ import { PropertyService } from './property.service';
 import { CreateDraftPropertyDto, CreatePropertyDto } from './dto/create-property.dto';
 import { ApiResponse } from '../../common/interfaces/api-response.interface';
 import { ResponseHelper } from '../../common/helpers/response.helper';
-import { ImageFilesInterceptor } from '../../common/intercepters/file-upload.interceptor';
+// import { ImageFilesInterceptor } from '../../common/intercepters/file-upload.interceptor';
 import { ListPropertiesDto } from './dto/list-properties.dto';
 import { UpdateDraftPropertyDto, UpdatePropertyDto } from './dto/update-property.dto';
 import { PropertyPublicationStatus } from '@prisma/client';
@@ -22,7 +22,7 @@ export class PropertyController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(ImageFilesInterceptor('images'))
+  // @UseInterceptors(ImageFilesInterceptor('images'))
   async createProperty(
     @Body() createPropertyDto: CreatePropertyDto,
     @UploadedFiles() files: Express.Multer.File[],
@@ -33,7 +33,7 @@ export class PropertyController {
 
   @Post('drafts')
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(ImageFilesInterceptor('images'))
+  // @UseInterceptors(ImageFilesInterceptor('images'))
   async createDraftProperty(
     @Body() createPropertyDto: CreateDraftPropertyDto,
     @UploadedFiles() files: Express.Multer.File[],
@@ -88,7 +88,7 @@ export class PropertyController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
-  @UseInterceptors(ImageFilesInterceptor('images'))
+  // @UseInterceptors(ImageFilesInterceptor('images'))
   async updateProperty(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePropertyDto: UpdatePropertyDto,
@@ -100,7 +100,7 @@ export class PropertyController {
 
   @Put('drafts/:id')
   @HttpCode(HttpStatus.OK)
-  @UseInterceptors(ImageFilesInterceptor('images'))
+  // @UseInterceptors(ImageFilesInterceptor('images'))
   async updateDraftProperty(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDraftPropertyDto: UpdateDraftPropertyDto,

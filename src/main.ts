@@ -11,14 +11,14 @@ import * as fs from 'fs';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);  
 
-  // const uploadDir = join(__dirname, '..', 'uploads');
-  // if (!fs.existsSync(uploadDir)) {
-  //   fs.mkdirSync(uploadDir, { recursive: true });
-  // }
+  const uploadDir = join(__dirname, '..', 'uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
 
-  // app.useStaticAssets(uploadDir, {
-  //   prefix: '/uploads/',
-  // });
+  app.useStaticAssets(uploadDir, {
+    prefix: '/uploads/',
+  });
 
   // app.enableCors({
   //   origin: ['https://flatwise.tanapps.com', 'http://localhost:8080'],
