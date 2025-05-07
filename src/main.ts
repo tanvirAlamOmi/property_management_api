@@ -21,7 +21,7 @@ async function bootstrap() {
   //   prefix: '/api/v1/uploads',
   // });
 
-  app.use('/uploads', express.static(uploadDir));
+  app.use('api/v1/uploads', express.static(uploadDir));
   // app.enableCors({
   //   origin: ['https://flatwise.tanapps.com', 'http://localhost:8080'],
   //   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
