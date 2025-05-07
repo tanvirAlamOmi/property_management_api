@@ -1,11 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './modules/app.module';
-import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { CustomValidationPipe } from './common/pipe/custom-validation.pipe';
 import { GlobalExceptionFilter } from './common/helpers/exception-handler.helper';
-// import * as cookieParser from 'cookie-parser';
 import * as fs from 'fs';
 import * as express from 'express';
 
@@ -22,12 +20,6 @@ async function bootstrap() {
   // });
 
   app.use('api/v1/uploads', express.static(uploadDir));
-  // app.enableCors({
-  //   origin: ['https://flatwise.tanapps.com', 'http://localhost:8080'],
-  //   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-  //   allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
-  //   credentials: false,
-  // });
 
   app.enableCors();
   app.setGlobalPrefix('api/v1');
@@ -35,12 +27,6 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   app.useGlobalPipes(new CustomValidationPipe());
-  // app.useGlobalPipes(new ValidationPipe({
-  //   whitelist: true,
-  //   transform: true,
-  //   forbidNonWhitelisted: true,
-  // }));
-  // app.use(cookieParser());
   
   await app.listen(process.env.PORT ?? 3000);
 }
