@@ -119,6 +119,17 @@ export class CreateBasePropertyDto {
   @ValidateNested({ each: true })
   @Type(() => Feature)
   additionalFeatures?: Feature[];
+
+  
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  beds?: number;
+  
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  baths?: number;
 }
 
 export class CreatePropertyDto extends CreateBasePropertyDto {  
@@ -163,14 +174,6 @@ export class CreatePropertyDto extends CreateBasePropertyDto {
 
   @IsNumber()
   totalPrice?: number;
-
-  @Type(() => Number)
-  @IsInt()
-  beds?: number;
-
-  @Type(() => Number)
-  @IsInt()
-  baths?: number;
 }
  
 export class CreateDraftPropertyDto extends CreateBasePropertyDto { 
@@ -227,15 +230,5 @@ export class CreateDraftPropertyDto extends CreateBasePropertyDto {
   @IsOptional()
   @IsNumber()
   totalPrice?: number;
-
-  @Type(() => Number)
-  @IsOptional()
-  @IsInt()
-  beds?: number;
-
-  @Type(() => Number)
-  @IsOptional()
-  @IsInt()
-  baths?: number;
 }
 

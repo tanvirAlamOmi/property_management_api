@@ -32,7 +32,7 @@ export class AuthService {
     }
 
     if(role !== Role.ADMIN) {
-      validationError('role', 'Only ADMIN role is allowed for registration now'); 
+      validationError('role', 'Only Admin role is allowed for registration now'); 
     }
 
     const code = this.generateVerificationCode();
@@ -70,7 +70,7 @@ export class AuthService {
     const { email, code, password, role } = dto;
  
     if(role !== Role.ADMIN) { 
-      validationError('role', 'Only ADMIN role is allowed for registration now'); 
+      validationError('role', 'Only Admin role is allowed for registration now'); 
     }
  
     const existingUser = await this.prisma.user.findUnique({ where: { email } });

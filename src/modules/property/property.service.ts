@@ -378,17 +378,14 @@ export class PropertyService {
       throw new NotFoundException('No properties found with the provided IDs');
     }
   
-    // Keep track of found IDs to report missing ones
     const foundIds = existingProperties.map(prop => prop.id);
     const missingIds = ids.filter(id => !foundIds.includes(id));
   
     try {
-      // Delete all properties in a single transaction
-      await this.prisma.property.deleteMany({
+       await this.prisma.property.deleteMany({
         where: { id: { in: foundIds } },
       });
   
-      // Delete associated image files
       existingProperties.forEach(property => {
         property.images.forEach(image => {
           const filePath = join(__dirname, '..', '..', image);

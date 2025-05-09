@@ -119,6 +119,16 @@ export class UpdateBasePropertyDto {
   @Type(() => Number)
   @IsInt()
   parkingSpaceId: number; 
+  
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  beds: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  baths: number;
 }
 
  export class UpdatePropertyDto extends UpdateBasePropertyDto {  
@@ -163,14 +173,6 @@ export class UpdateBasePropertyDto {
 
   @IsNumber()
   totalPrice: number;
-
-  @Type(() => Number)
-  @IsInt()
-  beds: number;
-
-  @Type(() => Number)
-  @IsInt()
-  baths: number;
 }
 
 export class UpdateDraftPropertyDto extends UpdateBasePropertyDto {
@@ -227,14 +229,4 @@ export class UpdateDraftPropertyDto extends UpdateBasePropertyDto {
   @IsOptional()
   @IsNumber()
   totalPrice?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  beds?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  baths?: number;
 }
