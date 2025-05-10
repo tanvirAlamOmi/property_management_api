@@ -263,83 +263,160 @@ export class PropertyService {
     });
   }
 
- async getPropertyOptions(): Promise<{
-  [key: string]: { id: string | number; name: string; [key: string]: any }[] | { min: number; max: number };
-  }> {
+
+  async getPropertyOptions(): Promise<{
+    [key: string]: { id: string | number; name: string; [key: string]: any }[] | { min: number; max: number };
+    }> {
     const fetchSimpleTable = async (model: any) =>
       model.findMany({ select: { id: true, name: true } });
 
-    const [
-      categories,
-      transactionTypes,
-      ownershipTypes,
-      buildingPermits,
-      parkingSpaces,
-      zones,
-      furnishings,
-      roadAccesses,
-      poolTypes,
-      landSizes,
-      priceRange,
-    ] = await Promise.all([
-      this.prisma.category.findMany({
-        include: {
-          subcategories: { select: { id: true, name: true, categoryId: true } },
-        },
-      }),
-      this.prisma.transactionType.findMany({
-        include: {
-          propertyStatus: { select: { id: true, name: true, transactionTypeId: true } },
-        },
-      }),
-      fetchSimpleTable(this.prisma.ownershipType),
-      fetchSimpleTable(this.prisma.buildingPermit),
-      fetchSimpleTable(this.prisma.parkingSpace),
-      fetchSimpleTable(this.prisma.zone),
-      fetchSimpleTable(this.prisma.furnishing),
-      fetchSimpleTable(this.prisma.roadAccess),
-      fetchSimpleTable(this.prisma.poolType),
-      fetchSimpleTable(this.prisma.landSize),
-      this.prisma.property.aggregate({
-        _min: { totalPrice: true },
-        _max: { totalPrice: true },
-      }),
-    ]);
+    try {
+      const [
+        categories,
+        transactionTypes,
+        ownershipTypes,
+        buildingPermits,
+        parkingSpaces,
+        zones,
+        furnishings,
+        roadAccesses,
+        poolTypes,
+        landSizes,
+        priceRange,
+      ] = await Promise.all([
 
-    const mapSimple = (items: any[]) => items.map(item => ({ id: item.id, name: item.name }));
+        // Fetch categories with subcategories
+        this.prisma.category.findMany({
+          select: {
+            id: true,
+            name: true,
+            subcategories: { select: { id: true, name: true, categoryId: true } },
+          },
+        }),
 
-    return {
-      Category: categories.map((item) => ({
-        id: item.id,
-        name: item.name,
-        subcategories: item.subcategories.map((sub) => ({
-          id: sub.id,
-          name: sub.name,
-          categoryId: sub.categoryId,
+        // Fetch transaction types with property statuses and categories
+        this.prisma.transactionType.findMany({
+          include: {
+            propertyStatuses: { select: { id: true, name: true, transactionTypeId: true } },
+            categories: { select: { id: true } },
+          },
+        }),
+
+        // Fetch ownership types with categories
+        fetchSimpleTable(this.prisma.ownershipType).then((items) =>
+          Promise.all(
+            items.map(async (item) => ({
+              ...item,
+              categories: await this.prisma.category.findMany({
+                where: { ownershipTypes: { some: { id: item.id } } },
+                select: { id: true },
+              }),
+            })),
+          ),
+        ),
+        
+        // Fetch building permits with categories
+        fetchSimpleTable(this.prisma.buildingPermit).then((items) =>
+          Promise.all(
+            items.map(async (item) => ({
+              ...item,
+              categories: await this.prisma.category.findMany({
+                where: { buildingPermits: { some: { id: item.id } } },
+                select: { id: true },
+              }),
+            })),
+          ),
+        ),
+        fetchSimpleTable(this.prisma.parkingSpace),
+        fetchSimpleTable(this.prisma.zone),
+        fetchSimpleTable(this.prisma.furnishing),
+        fetchSimpleTable(this.prisma.roadAccess),
+        fetchSimpleTable(this.prisma.poolType),
+        fetchSimpleTable(this.prisma.landSize),
+        this.prisma.property.aggregate({
+          _min: { totalPrice: true },
+          _max: { totalPrice: true },
+        }),
+      ]);
+
+      const propertyStatusesWithCategories = await this.prisma.propertyStatus.findMany({
+        select: {
+          id: true,
+          name: true,
+          transactionTypeId: true,
+          categories: { select: { id: true } },
+        },
+      });
+
+      // Transform data to match the desired response format
+      const data = {
+        Category: categories.map((item) => ({
+          id: item.id,
+          name: item.name,
         })),
-      })),
-      TransactionType: transactionTypes.map((item) => ({
-        id: item.id,
-        name: item.name,
-        propertyStatuses: item.propertyStatus.map((status) => ({
+        subcategories: categories.flatMap((item) =>
+          item.subcategories.map((sub) => ({
+            id: sub.id,
+            name: sub.name,
+            categoryId: sub.categoryId,
+          })),
+        ),
+        TransactionType: transactionTypes.map((item) => ({
+          id: item.id,
+          name: item.name,
+          categoryId: item.categories.map((c) => c.id),
+        })),
+       propertyStatuses: propertyStatusesWithCategories.map((status) => ({
           id: status.id,
           name: status.name,
           transactionTypeId: status.transactionTypeId,
+          categoryId: status.categories.map((c) => c.id),
         })),
-      })),
-      OwnershipType: mapSimple(ownershipTypes),
-      BuildingPermit: mapSimple(buildingPermits),
-      ParkingSpace: mapSimple(parkingSpaces),
-      Zone: mapSimple(zones),
-      Furnishing: mapSimple(furnishings),
-      RoadAccess: mapSimple(roadAccesses),
-      PoolType: mapSimple(poolTypes),
-      LandSize: mapSimple(landSizes),
-      PriceRange: {
-        min: priceRange._min.totalPrice ?? 0,
-        max: priceRange._max.totalPrice ?? 0,
-      },
-    };
+        OwnershipType: ownershipTypes.map((item) => ({
+          id: item.id,
+          name: item.name,
+          categoryId: item.categories.map((c) => c.id),
+        })),
+        BuildingPermit: buildingPermits.map((item) => ({
+          id: item.id,
+          name: item.name,
+          categoryId: item.categories.map((c) => c.id),
+        })),
+        ParkingSpace: parkingSpaces.map((item) => ({
+          id: item.id,
+          name: item.name,
+        })),
+        Zone: zones.map((item) => ({
+          id: item.id,
+          name: item.name,
+        })),
+        Furnishing: furnishings.map((item) => ({
+          id: item.id,
+          name: item.name,
+        })),
+        RoadAccess: roadAccesses.map((item) => ({
+          id: item.id,
+          name: item.name,
+        })),
+        PoolType: poolTypes.map((item) => ({
+          id: item.id,
+          name: item.name,
+        })),
+        LandSize: landSizes.map((item) => ({
+          id: item.id,
+          name: item.name,
+        })),
+        PriceRange: {
+          min: priceRange._min.totalPrice ?? 0,
+          max: priceRange._max.totalPrice ?? 0,
+        },
+      };
+
+      return data;
+    } catch (error) {
+      console.error(error);
+      throw new BadRequestException('Failed to retrieve property options');
+    }
   }
 
   async getPropertyById(id: number) {

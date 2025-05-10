@@ -30,7 +30,6 @@ enum ValidationCodeType {
   REGISTER
 }
 
-
 model Furnishing {
   id            Int           @id @default(autoincrement())
   name          String        @unique
@@ -87,6 +86,10 @@ model Category {
   id            Int           @id @default(autoincrement())
   name          String        @unique
   subcategories Subcategory[]
+  transactionTypes TransactionType[] @relation("CategoryTransactionType")
+  propertyStatuses PropertyStatus[] @relation("CategoryPropertyStatus")
+  ownershipTypes OwnershipType[]  @relation("CategoryOwnershipType")
+  buildingPermits BuildingPermit[] @relation("CategoryBuildingPermit")
   properties    Property[]
 }
 
@@ -98,17 +101,12 @@ model Subcategory {
   properties  Property[]
 }
 
-model OwnershipType {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique
-  properties  Property[]
-}
-
 model TransactionType {
-  id              Int        @id @default(autoincrement())
-  name            String     @unique
-  propertyStatus  PropertyStatus[]
-  properties      Property[]
+  id                Int        @id @default(autoincrement())
+  name              String     @unique
+  categories        Category[] @relation("CategoryTransactionType")
+  propertyStatuses  PropertyStatus[]
+  properties        Property[]
 }
 
 model PropertyStatus {
@@ -116,12 +114,21 @@ model PropertyStatus {
   name                String
   transactionTypeId   Int
   transactionType     TransactionType   @relation(fields: [transactionTypeId], references: [id])
+  categories          Category[]     @relation("CategoryPropertyStatus")
+  properties          Property[]
+}
+
+model OwnershipType {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  categories  Category[] @relation("CategoryOwnershipType")
   properties  Property[]
 }
 
 model BuildingPermit {
   id          Int        @id @default(autoincrement())
   name        String     @unique
+  categories  Category[] @relation("CategoryBuildingPermit")
   properties  Property[]
 }
 
@@ -138,55 +145,55 @@ model ParkingSpace {
 }
 
 model Property {
-  id                Int             @id @default(autoincrement())
-  title             String
-  categoryId        Int?
-  category          Category?        @relation(fields: [categoryId], references: [id])
-  subcategoryId     Int?
-  subcategory       Subcategory?    @relation(fields: [subcategoryId], references: [id])
-  ownershipTypeId   Int?
-  ownershipType     OwnershipType?   @relation(fields: [ownershipTypeId], references: [id])
-  transactionTypeId Int?
-  transactionType   TransactionType? @relation(fields: [transactionTypeId], references: [id])
-  propertyStatusId  Int?
-  propertyStatus    PropertyStatus? @relation(fields: [propertyStatusId], references: [id])
-  buildingPermitId  Int?
-  buildingPermit    BuildingPermit? @relation(fields: [buildingPermitId], references: [id])
+  id                 Int             @id @default(autoincrement())
+  title              String
+  categoryId         Int?
+  category           Category?       @relation(fields: [categoryId], references: [id])
+  subcategoryId      Int?
+  subcategory        Subcategory?    @relation(fields: [subcategoryId], references: [id])
+  ownershipTypeId    Int?
+  ownershipType      OwnershipType?   @relation(fields: [ownershipTypeId], references: [id])
+  transactionTypeId  Int?
+  transactionType    TransactionType? @relation(fields: [transactionTypeId], references: [id])
+  propertyStatusId   Int?
+  propertyStatus     PropertyStatus? @relation(fields: [propertyStatusId], references: [id])
+  buildingPermitId   Int?
+  buildingPermit     BuildingPermit? @relation(fields: [buildingPermitId], references: [id])
 
-  address           String?
-  location          String?
-  zipCode           String?
-  googleMapLink     String?
+  address            String?
+  location           String?
+  zipCode            String?
+  googleMapLink      String?
   roadAccessId      Int?
-  roadAccess        RoadAccess? @relation(fields: [roadAccessId], references: [id])
-  nearbyPoints      String[]        
-  zoneId            Int?
-  zone              Zone? @relation(fields: [zoneId], references: [id])
+  roadAccess         RoadAccess? @relation(fields: [roadAccessId], references: [id])
+  nearbyPoints       String[]        
+  zoneId             Int?
+  zone               Zone? @relation(fields: [zoneId], references: [id])
 
-  landSizeId        Int?
-  landSize          LandSize? @relation(fields: [landSizeId], references: [id])
-  builtUpArea       Float?
-  pricePerUnit      Float?
-  totalPrice        Float?
-  pricePerYear      Float?
-  numberOfFloors    Int?
-  maxRooms          Int?
-  beds              Int?
-  baths             Int?
-  furnishingId      Int?
-  furnishing        Furnishing? @relation(fields: [furnishingId], references: [id])
-  buildingYear      Int?
-  availableDate     String?
-  parkingSpaceId    Int?
-  parkingSpace      ParkingSpace? @relation(fields: [parkingSpaceId], references: [id])
-  pool              Boolean?        @default(false)
-  poolTypeId        Int?
-  poolType          PoolType? @relation(fields: [poolTypeId], references: [id])
-  poolSize          Float?
+  landSizeId         Int?
+  landSize           LandSize? @relation(fields: [landSizeId], references: [id])
+  builtUpArea        Float?
+  pricePerUnit       Float?
+  totalPrice         Float?
+  pricePerYear       Float?
+  numberOfFloors     Int?
+  maxRooms           Int?
+  beds               Int?
+  baths              Int?
+  furnishingId       Int?
+  furnishing         Furnishing? @relation(fields: [furnishingId], references: [id])
+  buildingYear       Int?
+  availableDate      String?
+  parkingSpaceId     Int?
+  parkingSpace       ParkingSpace? @relation(fields: [parkingSpaceId], references: [id])
+  pool               Boolean?        @default(false)
+  poolTypeId         Int?
+  poolType           PoolType? @relation(fields: [poolTypeId], references: [id])
+  poolSize           Float?
 
-  description       String?
-  images            String[]        
-  videoLink         String?
+  description        String?
+  images             String[]        
+  videoLink          String?
 
   livingSpace        Json[]          
   kitchen            Json[]           
@@ -194,7 +201,7 @@ model Property {
   servicesIncluded   Json[]           
   additionalFeatures Json[]         
 
-  publicationStatus            PropertyPublicationStatus     @default(DRAFT)
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  publicationStatus  PropertyPublicationStatus     @default(DRAFT)
+  createdAt          DateTime                      @default(now())
+  updatedAt          DateTime                      @updatedAt
 }

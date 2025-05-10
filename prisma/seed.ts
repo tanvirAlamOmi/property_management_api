@@ -3,126 +3,188 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  // Categories and Subcategories
-  const residential = await prisma.category.upsert({
-    where: { name: 'Residential' },
-    update: {},
-    create: {
-      name: 'Residential',
-      subcategories: {
-        create: [
-          { name: 'Villa' },
-          { name: 'House' },
-          { name: 'Apartment' },
-          { name: 'Townhouse' },
-        ],
-      },
-    },
-  });
+  await prisma.subcategory.deleteMany();
+  await prisma.propertyStatus.deleteMany();
+  await prisma.transactionType.deleteMany();
+  await prisma.ownershipType.deleteMany();
+  await prisma.buildingPermit.deleteMany();
+  await prisma.category.deleteMany();
 
-  const land = await prisma.category.upsert({
-    where: { name: 'Land' },
-    update: {},
-    create: {
-      name: 'Land',
-      subcategories: {
-        create: [
-          { name: 'Development Land' },
-          { name: 'Agricultural Land' },
-          { name: 'Rice Field' },
-        ],
-      },
-    },
-  });
+  // Categories and Subcategories 
+await prisma.category.createMany({
+      data: [
+        { name: 'Residential' },
+        { name: 'Land' },
+        { name: 'Commercial' },
+        { name: 'Development' },
+      ],
+    });
 
-  const commercial = await prisma.category.upsert({
-    where: { name: 'Commercial' },  
-    update: {},
-    create: {
-      name: 'Commercial',
-      subcategories: {
-        create: [
-          { name: 'Shop' },
-          { name: 'Restaurant' },
-          { name: 'Cafe' },
-          { name: 'Ruko' },
-        ],
-      },
-    },
-  });
-
-  const development = await prisma.category.upsert({
-    where: { name: 'Development' },
-    update: {},
-    create: {
-      name: 'Development',
-      subcategories: {
-        create: [
-          { name: 'Off-Plan Projects' },
-        ],
-      },
-    },
-  });
+    // Seed subcategories
+    await prisma.subcategory.createMany({
+      data: [
+        { name: 'Villa', categoryId: 1 },
+        { name: 'House', categoryId: 1 },
+        { name: 'Apartment', categoryId: 1 },
+        { name: 'Townhouse', categoryId: 1 },
+        { name: 'Development Land', categoryId: 2 },
+        { name: 'Agricultural Land', categoryId: 2 },
+        { name: 'Rice Field', categoryId: 2 },
+        { name: 'Shop', categoryId: 3 },
+        { name: 'Restaurant', categoryId: 3 },
+        { name: 'Cafe', categoryId: 3 },
+        { name: 'Ruko', categoryId: 3 },
+        { name: 'Off-Plan Projects', categoryId: 4 },
+      ],
+    });
 
   // Transaction Types
-  await prisma.transactionType.upsert({
-    where: { name: 'Sale' },
-    update: {},
-    create: {
-      name: 'Sale',
-      propertyStatus: {
-        create: [
-          { name: 'Freehold' },
-          { name: 'Leasehold' },
-        ],
-      },
-    },
-  });
+  const transactionTypes = await prisma.transactionType.createMany({
+      data: [
+        { name: 'Sale' },
+        { name: 'Rental' },
+      ],
+    });
 
-  await prisma.transactionType.upsert({
-    where: { name: 'Rental' },
-    update: {},
-    create: {
-      name: 'Rental',
-      propertyStatus: {
-        create: [
-          { name: 'Monthly' },
-          { name: 'Yearly' },
-        ],
-      },
-    },
-  });
+    // Seed property statuses
+    const propertyStatuses = await prisma.propertyStatus.createMany({
+      data: [
+        { name: 'Freehold', transactionTypeId: 1 },
+        { name: 'Leasehold', transactionTypeId: 1 },
+        { name: 'Monthly', transactionTypeId: 2 },
+        { name: 'Yearly', transactionTypeId: 2 },
+      ],
+    });
 
   // Ownership Types
-  const ownershipTypes = [
-    'Freehold (Hak Milik)',
-    'Leasehold (Hak Sewa)',
-    'Right of Use (Hak Pakai)',
-    'Strata Title',
-    'Right to Build (HGB / Hak Guna Bangunan)',
-  ];
-
-  for (const name of ownershipTypes) {
-    await prisma.ownershipType.upsert({
-      where: { name },
-      update: {},
-      create: { name },
+ await prisma.ownershipType.createMany({
+      data: [
+        { name: 'Freehold (Hak Milik)' },
+        { name: 'Leasehold (Hak Sewa)' },
+        { name: 'Right of Use (Hak Pakai)' },
+        { name: 'Strata Title' },
+        { name: 'Right to Build (HGB / Hak Guna Bangunan)' },
+      ],
     });
-  }
 
   // Building Permits
-  const buildingPermits = [
-    'PBG (Persetujuan Bangunan Gedung)',
-    'SLF (Sertifikat Laik Fungsi)',
-  ];
-
-  for (const name of buildingPermits) {
-    await prisma.buildingPermit.upsert({
-      where: { name },
-      update: {},
-      create: { name },
+ await prisma.buildingPermit.createMany({ 
+      data: [
+        { name: 'PBG (Persetujuan Bangunan Gedung)' },
+        { name: 'SLF (Sertifikat Laik Fungsi)' },
+      ],
     });
-  }
+
+    await prisma.transactionType.update({
+      where: { id: 1 },
+      data: {
+        categories: {
+          connect: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }],
+        },
+      },
+    });
+    await prisma.transactionType.update({
+      where: { id: 2 },
+      data: {
+        categories: {
+          connect: [{ id: 1 }, { id: 3 }],
+        },
+      },
+    });
+
+    // Connect categories to property statuses
+    await prisma.propertyStatus.update({
+      where: { id: 1 },
+      data: {
+        categories: {
+          connect: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }],
+        },
+      },
+    });
+    await prisma.propertyStatus.update({
+      where: { id: 2 },
+      data: {
+        categories: {
+          connect: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }],
+        },
+      },
+    });
+    await prisma.propertyStatus.update({
+      where: { id: 3 },
+      data: {
+        categories: {
+          connect: [{ id: 1 }, { id: 3 }],
+        },
+      },
+    });
+    await prisma.propertyStatus.update({
+      where: { id: 4 },
+      data: {
+        categories: {
+          connect: [{ id: 1 }, { id: 3 }],
+        },
+      },
+    });
+
+    // Connect categories to ownership types
+    await prisma.ownershipType.update({
+      where: { id: 1 },
+      data: {
+        categories: {
+          connect: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }],
+        },
+      },
+    });
+    await prisma.ownershipType.update({
+      where: { id: 2 },
+      data: {
+        categories: {
+          connect: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }],
+        },
+      },
+    });
+    await prisma.ownershipType.update({
+      where: { id: 3 },
+      data: {
+        categories: {
+          connect: [{ id: 1 }, { id: 2 }, { id: 3 }],
+        },
+      },
+    });
+    await prisma.ownershipType.update({
+      where: { id: 4 },
+      data: {
+        categories: {
+          connect: [{ id: 1 }, { id: 3 }],
+        },
+      },
+    });
+    await prisma.ownershipType.update({
+      where: { id: 5 },
+      data: {
+        categories: {
+          connect: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }],
+        },
+      },
+    });
+
+    // Connect categories to building permits
+    await prisma.buildingPermit.update({
+      where: { id: 1 },
+      data: {
+        categories: {
+          connect: [{ id: 1 }, { id: 3 }, { id: 4 }],
+        },
+      },
+    });
+    await prisma.buildingPermit.update({
+      where: { id: 2 },
+      data: {
+        categories: {
+          connect: [{ id: 1 }, { id: 3 }, { id: 4 }],
+        },
+      },
+    });
 
    // Building Permits
    const parkingSpace = [
