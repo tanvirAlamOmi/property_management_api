@@ -8,6 +8,7 @@ import { ListPropertiesDto } from './dto/list-properties.dto';
 import { UpdateDraftPropertyDto, UpdatePropertyDto } from './dto/update-property.dto';
 import { PropertyPublicationStatus } from '@prisma/client';
 import { BulkDeleteDto,   } from './dto/delete-property.dto';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @Controller('properties')
 export class PropertyController {
@@ -21,24 +22,16 @@ export class PropertyController {
   }
 
   @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(ImageFilesInterceptor('images'))
-  async createProperty(
-    @Body() createPropertyDto: CreatePropertyDto,
-    @UploadedFiles() files: Express.Multer.File[],
-  ): Promise<ApiResponse<any>> {
-    const property = await this.propertyService.createProperty(createPropertyDto, files, PropertyPublicationStatus.PUBLISHED);
+  @HttpCode(HttpStatus.CREATED) 
+  async createProperty( @Body() createPropertyDto: CreatePropertyDto ): Promise<ApiResponse<any>> {
+    const property = await this.propertyService.createProperty(createPropertyDto, PropertyPublicationStatus.PUBLISHED);
     return ResponseHelper.success(property, 'Property created successfully');
   }
 
   @Post('drafts')
-  @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(ImageFilesInterceptor('images'))
-  async createDraftProperty(
-    @Body() createPropertyDto: CreateDraftPropertyDto,
-    @UploadedFiles() files: Express.Multer.File[],
-  ): Promise<ApiResponse<any>> {
-    const property = await this.propertyService.createProperty(createPropertyDto, files, PropertyPublicationStatus.DRAFT);
+  @HttpCode(HttpStatus.CREATED) 
+  async createDraftProperty( @Body() createPropertyDto: CreateDraftPropertyDto ): Promise<ApiResponse<any>> {
+    const property = await this.propertyService.createProperty(createPropertyDto, PropertyPublicationStatus.DRAFT);
     return ResponseHelper.success(property, 'Property created successfully');
   } 
 
@@ -87,26 +80,22 @@ export class PropertyController {
   }
 
   @Put(':id')
-  @HttpCode(HttpStatus.OK)
-  @UseInterceptors(ImageFilesInterceptor('images'))
+  @HttpCode(HttpStatus.OK) 
   async updateProperty(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updatePropertyDto: UpdatePropertyDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @Body() updatePropertyDto: UpdatePropertyDto 
   ): Promise<ApiResponse<any>> {
-    const property = await this.propertyService.updateProperty(id, updatePropertyDto, files, PropertyPublicationStatus.PUBLISHED);
+    const property = await this.propertyService.updateProperty(id, updatePropertyDto, PropertyPublicationStatus.PUBLISHED);
     return ResponseHelper.success(property, 'Property updated successfully');
   }
 
   @Put('drafts/:id')
-  @HttpCode(HttpStatus.OK)
-  @UseInterceptors(ImageFilesInterceptor('images'))
+  @HttpCode(HttpStatus.OK) 
   async updateDraftProperty(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateDraftPropertyDto: UpdateDraftPropertyDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @Body() updateDraftPropertyDto: UpdateDraftPropertyDto 
   ): Promise<ApiResponse<any>> {
-    const property = await this.propertyService.updateProperty(id, updateDraftPropertyDto, files, PropertyPublicationStatus.DRAFT);
+    const property = await this.propertyService.updateProperty(id, updateDraftPropertyDto, PropertyPublicationStatus.DRAFT);
     return ResponseHelper.success(property, 'Draft property updated successfully');
   }
 
@@ -117,5 +106,19 @@ export class PropertyController {
     return ResponseHelper.success(property, 'property retrieved successfully'); 
   }
 
+
+@Public()
+@Post('upload-images')
+@HttpCode(HttpStatus.OK)
+@UseInterceptors(ImageFilesInterceptor('images'))
+async uploadImages(
+  @UploadedFiles() files: Express.Multer.File[] | undefined,
+): Promise<ApiResponse<string[]>> {
+  if (!files || !Array.isArray(files)) {
+    throw new BadRequestException('No files uploaded');
+  }
+  const imagePaths = files.map(file => `/uploads/${file.filename}`);
+  return ResponseHelper.success(imagePaths, 'Images uploaded successfully');
+}
 
 }

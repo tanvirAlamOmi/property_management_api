@@ -20,9 +20,7 @@ export class PropertyService {
       }));
   }
 
-  async createProperty(dto: CreatePropertyDto | CreateDraftPropertyDto, files: Express.Multer.File[] = [], status: PropertyPublicationStatus) {
-    const imagePaths = files.map(file => `/uploads/${file.filename}`);
-
+  async createProperty(dto: CreatePropertyDto | CreateDraftPropertyDto, status: PropertyPublicationStatus) { 
     await this.validateIds(dto);
 
     const data: Prisma.PropertyUncheckedCreateInput = {
@@ -57,7 +55,7 @@ export class PropertyService {
       poolTypeId: dto.poolTypeId,
       poolSize: dto.poolSize,
       description: dto.description,
-      images: imagePaths,
+      images: dto.images,
       videoLink: dto.videoLink,
       livingSpace: this.transformFeatures(dto.livingSpace),
       kitchen: this.transformFeatures(dto.kitchen),
@@ -179,14 +177,15 @@ export class PropertyService {
     });
     if (!existingProperty) {
       throw new NotFoundException(`Property with ID ${id} not found`);
-    }
-
+    } 
+     
     try {
       await this.prisma.property.delete({ where: { id } });
 
       existingProperty.images.forEach(image => {
-        const filePath = join(__dirname, '..', '..', image);
-        if (fs.existsSync(filePath)) {
+        const filePath = join(process.cwd(), 'uploads', image.replace(/^\/uploads\//, ''));
+         
+        if (fs.existsSync(filePath)) { 
           fs.unlinkSync(filePath);
         }
       });
@@ -197,7 +196,7 @@ export class PropertyService {
     }
   }
 
-  async updateProperty(id: number, dto: UpdatePropertyDto | UpdateDraftPropertyDto , files: Express.Multer.File[] = [], status: PropertyPublicationStatus) {
+  async updateProperty(id: number, dto: UpdatePropertyDto | UpdateDraftPropertyDto, status: PropertyPublicationStatus) {
     const existingProperty = await this.prisma.property.findUnique({
       where: { id },
     });
@@ -205,9 +204,7 @@ export class PropertyService {
     if (!existingProperty) {
       throw new BadRequestException('Property not found');
     }
-
-    const imagePaths = files.length > 0 ? files.map(file => `/uploads/${file.filename}`) : existingProperty.images;
-
+ 
     await this.validateIds(dto);
 
     const data = {
@@ -242,7 +239,7 @@ export class PropertyService {
       poolTypeId: dto.poolTypeId,
       poolSize: dto.poolSize,
       description: dto.description,
-      images: imagePaths,
+      images: dto.images,
       videoLink: dto.videoLink,
       livingSpace: this.transformFeatures(dto.livingSpace),
       kitchen: this.transformFeatures(dto.kitchen),
@@ -465,7 +462,7 @@ export class PropertyService {
   
       existingProperties.forEach(property => {
         property.images.forEach(image => {
-          const filePath = join(__dirname, '..', '..', image);
+        const filePath = join(process.cwd(), 'uploads', image.replace(/^\/uploads\//, ''));
           if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
           }

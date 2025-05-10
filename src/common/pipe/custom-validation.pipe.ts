@@ -38,10 +38,10 @@ export class CustomValidationPipe extends ValidationPipe {
 
   async transform(value: any, metadata: ArgumentMetadata) {
     // Exclude 'images' field from validation
-    if (metadata.type === 'body' && value && typeof value === 'object') {
-      const { images, ...rest } = value;
-      return super.transform(rest, metadata);
-    }
+    // if (metadata.type === 'body' && value && typeof value === 'object') {
+    //   const { images, ...rest } = value;
+    //   return super.transform(rest, metadata);
+    // }
     return super.transform(value, metadata);
   }
 }

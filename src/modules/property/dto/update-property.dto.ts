@@ -129,6 +129,11 @@ export class UpdateBasePropertyDto {
   @Type(() => Number)
   @IsInt()
   baths: number;
+  
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[]
 }
 
  export class UpdatePropertyDto extends UpdateBasePropertyDto {  
