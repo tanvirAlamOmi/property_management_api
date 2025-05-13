@@ -262,7 +262,7 @@ export class PropertyService {
 
 
   async getPropertyOptions(): Promise<{
-    [key: string]: { id: string | number; name: string; [key: string]: any }[] | { min: number; max: number };
+    [key: string]: { id: string | number | boolean; name: string; [key: string]: any }[] | { min: number; max: number };
     }> {
     const fetchSimpleTable = async (model: any) =>
       model.findMany({ select: { id: true, name: true } });
@@ -347,63 +347,67 @@ export class PropertyService {
 
       // Transform data to match the desired response format
       const data = {
-        Category: categories.map((item) => ({
+        category: categories.map((item) => ({
           id: item.id,
           name: item.name,
         })),
-        subcategories: categories.flatMap((item) =>
+        subcategory: categories.flatMap((item) =>
           item.subcategories.map((sub) => ({
             id: sub.id,
             name: sub.name,
             categoryId: sub.categoryId,
           })),
         ),
-        TransactionType: transactionTypes.map((item) => ({
+        transactionType: transactionTypes.map((item) => ({
           id: item.id,
           name: item.name,
           categoryId: item.categories.map((c) => c.id),
         })),
-       propertyStatuses: propertyStatusesWithCategories.map((status) => ({
+        propertyStatus: propertyStatusesWithCategories.map((status) => ({
           id: status.id,
           name: status.name,
           transactionTypeId: status.transactionTypeId,
           categoryId: status.categories.map((c) => c.id),
         })),
-        OwnershipType: ownershipTypes.map((item) => ({
+        ownershipType: ownershipTypes.map((item) => ({
           id: item.id,
           name: item.name,
           categoryId: item.categories.map((c) => c.id),
         })),
-        BuildingPermit: buildingPermits.map((item) => ({
+        buildingPermit: buildingPermits.map((item) => ({
           id: item.id,
           name: item.name,
           categoryId: item.categories.map((c) => c.id),
         })),
-        ParkingSpace: parkingSpaces.map((item) => ({
+        parkingSpace: parkingSpaces.map((item) => ({
           id: item.id,
           name: item.name,
         })),
-        Zone: zones.map((item) => ({
+        zone: zones.map((item) => ({
           id: item.id,
           name: item.name,
         })),
-        Furnishing: furnishings.map((item) => ({
+        furnishing: furnishings.map((item) => ({
           id: item.id,
           name: item.name,
         })),
-        RoadAccess: roadAccesses.map((item) => ({
+        roadAccess: roadAccesses.map((item) => ({
           id: item.id,
           name: item.name,
         })),
-        PoolType: poolTypes.map((item) => ({
+        poolType: poolTypes.map((item) => ({
           id: item.id,
           name: item.name,
         })),
-        LandSize: landSizes.map((item) => ({
+        landSize: landSizes.map((item) => ({
           id: item.id,
           name: item.name,
         })),
-        PriceRange: {
+        pool : [
+          { id: true, name: 'Yes' },
+          { id: false, name: 'No' },
+        ],
+        priceRange: {
           min: priceRange._min.totalPrice ?? 0,
           max: priceRange._max.totalPrice ?? 0,
         },
