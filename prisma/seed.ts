@@ -234,16 +234,31 @@ async function main() {
   }
 
   // Seed land sizes
-  const landSizeData = ['are (a)', 'm²', 'ft²'];
+  const landUnitData = [
+    {
+      "name": 'are (a)',
+       "symbol": 'are (a)'
+    },
+    {
+      "name": 'Square Meter',
+       "symbol": 'm²'
+    },  
+    {
+      "name": 'Square Feet',
+       "symbol": 'ft²'
+    }, 
+  ];
 
-  for (const name of landSizeData) {
-    await prisma.landSize.upsert({
-      where: { name },
-      update: {},
-      create: { name },
-    });
-  }
-
+  for (const data of landUnitData) {
+      await prisma.landUnit.upsert({
+        where: { name: data.name }, 
+        update: {}, 
+        create: {
+          name: data.name,
+          symbol: data.symbol,
+        },
+      });
+    }
   console.log('Seeding completed.');
 }
 

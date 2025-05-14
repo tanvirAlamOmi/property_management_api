@@ -1,6 +1,5 @@
 import { IsInt, Min, IsOptional, IsString, IsEnum, IsNumber, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Furnishing, LandSize, PoolType, RoadAccess } from '@prisma/client';
 
 export class ListPropertiesDto {
   @IsOptional()

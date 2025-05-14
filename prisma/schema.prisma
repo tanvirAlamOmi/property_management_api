@@ -48,9 +48,10 @@ model PoolType {
   properties    Property[]
 }
 
-model LandSize {
+model LandUnit {
   id            Int           @id @default(autoincrement())
   name          String        @unique
+  symbol        String        @unique
   properties    Property[]
 }
 
@@ -170,8 +171,9 @@ model Property {
   zoneId             Int?
   zone               Zone? @relation(fields: [zoneId], references: [id])
 
-  landSizeId         Int?
-  landSize           LandSize? @relation(fields: [landSizeId], references: [id])
+  landUnitId         Int?
+  landUnit           LandUnit? @relation(fields: [landUnitId], references: [id])
+  landSize           Float?
   builtUpArea        Float?
   pricePerUnit       Float?
   totalPrice         Float?

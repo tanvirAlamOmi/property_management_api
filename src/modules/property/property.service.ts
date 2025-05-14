@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDraftPropertyDto, CreatePropertyDto } from './dto/create-property.dto';
-import { Furnishing, LandSize, PoolType, Prisma, PropertyPublicationStatus, PropertyStatus, RoadAccess, Role, ValidationCodeType } from '@prisma/client';
+import { Furnishing, LandUnit, PoolType, Prisma, PropertyPublicationStatus, PropertyStatus, RoadAccess, Role, ValidationCodeType } from '@prisma/client';
 import { ListPropertiesDto } from './dto/list-properties.dto';
 import { join } from 'path';
 import * as fs from 'fs';
@@ -38,7 +38,8 @@ export class PropertyService {
       roadAccessId: dto.roadAccessId,
       nearbyPoints: dto.nearbyPoints || [],
       zoneId: dto.zoneId,
-      landSizeId: dto.landSizeId,
+      landUnitId: dto.landUnitId,
+      landSize: dto.landSize,
       builtUpArea: dto.builtUpArea,
       pricePerUnit: dto.pricePerUnit,
       totalPrice: dto.totalPrice,
@@ -112,6 +113,21 @@ export class PropertyService {
       dto.parkingSpaceId && this.prisma.parkingSpace.findUnique({ where: { id: dto.parkingSpaceId } }).then(parking => {
         if (!parking) {
           validationError('parkingSpaceId', `Invalid parkingSpaceId: ${dto.parkingSpaceId}`); 
+        } 
+      }), 
+      dto.roadAccessId && this.prisma.roadAccess.findUnique({ where: { id: dto.roadAccessId } }).then(roadAccess => {
+        if (!roadAccess) {
+          validationError('roadAccessId', `Invalid roadAccessId: ${dto.roadAccessId}`); 
+        } 
+      }),
+      dto.landUnitId && this.prisma.landUnit.findUnique({ where: { id: dto.landUnitId } }).then(landUnit => {
+        if (!landUnit) {
+          validationError('landUnitId', `Invalid landUnitId: ${dto.landUnitId}`); 
+        } 
+      }),
+      dto.poolTypeId && this.prisma.poolType.findUnique({ where: { id: dto.poolTypeId } }).then(poolType => {
+        if (!poolType) {
+          validationError('poolTypeId', `Invalid poolTypeId: ${dto.poolTypeId}`); 
         } 
       }),
     ].filter(Boolean); 
@@ -222,7 +238,8 @@ export class PropertyService {
       roadAccessId: dto.roadAccessId,
       nearbyPoints: dto.nearbyPoints,
       zoneId: dto.zoneId,
-      landSizeId: dto.landSizeId,
+      landUnitId: dto.landUnitId,
+      landSize: dto.landSize,
       builtUpArea: dto.builtUpArea,
       pricePerUnit: dto.pricePerUnit,
       totalPrice: dto.totalPrice,
@@ -271,6 +288,7 @@ export class PropertyService {
       const [
         categories,
         transactionTypes,
+        landUnits,
         ownershipTypes,
         buildingPermits,
         parkingSpaces,
@@ -278,7 +296,6 @@ export class PropertyService {
         furnishings,
         roadAccesses,
         poolTypes,
-        landSizes,
         priceRange,
       ] = await Promise.all([
 
@@ -298,7 +315,14 @@ export class PropertyService {
             categories: { select: { id: true } },
           },
         }),
-
+        // Fetch land unit types
+       this.prisma.landUnit.findMany({
+          select: {
+            id: true,
+            name: true,
+            symbol: true,
+          },
+        }),
         // Fetch ownership types with categories
         fetchSimpleTable(this.prisma.ownershipType).then((items) =>
           Promise.all(
@@ -329,7 +353,6 @@ export class PropertyService {
         fetchSimpleTable(this.prisma.furnishing),
         fetchSimpleTable(this.prisma.roadAccess),
         fetchSimpleTable(this.prisma.poolType),
-        fetchSimpleTable(this.prisma.landSize),
         this.prisma.property.aggregate({
           _min: { totalPrice: true },
           _max: { totalPrice: true },
@@ -399,9 +422,10 @@ export class PropertyService {
           id: item.id,
           name: item.name,
         })),
-        landSize: landSizes.map((item) => ({
+        landUnit: landUnits.map((item) => ({
           id: item.id,
           name: item.name,
+          symbol: item.symbol,
         })),
         pool : [
           { id: true, name: 'Yes' },
@@ -435,7 +459,7 @@ export class PropertyService {
         furnishing: { select: { id: true, name: true } },
         roadAccess: { select: { id: true, name: true } },
         poolType: { select: { id: true, name: true } },
-        landSize: { select: { id: true, name: true } },
+        landUnit: { select: { id: true, name: true, symbol: true } },
       },
     });
 
