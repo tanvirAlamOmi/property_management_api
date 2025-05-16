@@ -157,6 +157,11 @@ export class CreateBasePropertyDto {
   @IsArray()
   @IsString({ each: true })
   images?: string[]
+ 
+  @IsOptional()
+  @IsNumber()
+  @Min(0, { message: 'Price per unit cannot be negative' })
+  pricePerUnit?: number;
 }
 
 export class CreatePropertyDto extends CreateBasePropertyDto {  
@@ -191,25 +196,26 @@ export class CreatePropertyDto extends CreateBasePropertyDto {
   address?: string;
 
   @IsString()
+  @IsNotEmpty()
   @MinLength(3, { message: 'Location must be at least 3 characters' })
   location?: string;
 
   @IsString()
+  @IsNotEmpty()
   zipCode?: string; 
  
   @IsNumber()
+  @IsNotEmpty()
   @Min(0, { message: 'land size cannot be negative' })
   landSize?: number;
 
   @IsNumber()
+  @IsNotEmpty()
   @Min(0, { message: 'Built-up area cannot be negative' })
   builtUpArea?: number;
-
+  
   @IsNumber()
-  @Min(0, { message: 'Price per unit cannot be negative' })
-  pricePerUnit?: number;
-
-  @IsNumber()
+  @IsNotEmpty()
   @Min(0, { message: 'Total price cannot be negative' })
   totalPrice?: number;
 }
@@ -269,10 +275,6 @@ export class CreateDraftPropertyDto extends CreateBasePropertyDto {
   @Min(0, { message: 'Built-up area cannot be negative' })
   builtUpArea?: number;
 
-  @IsOptional()
-  @IsNumber()
-  @Min(0, { message: 'Price per unit cannot be negative' })
-  pricePerUnit?: number;
 
   @IsOptional()
   @IsNumber()
