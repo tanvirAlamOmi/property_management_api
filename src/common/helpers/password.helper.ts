@@ -10,7 +10,7 @@ export class PasswordHelper {
   }
 
   static validatePassword(password: string): boolean {
-    const passwordRegex = /^(?=.*[0-9!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+    const passwordRegex = /^(?=.*[0-9\W_]).{8,}$/;
     return passwordRegex.test(password);
   }
 }
