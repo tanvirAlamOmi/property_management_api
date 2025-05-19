@@ -166,7 +166,8 @@ export class PropertyService {
           include: {
             category: true,
             subcategory: true,
-            transactionType: true 
+            transactionType: true,
+            landUnit: true, 
           },
         }),
         this.prisma.property.count({ where }),
