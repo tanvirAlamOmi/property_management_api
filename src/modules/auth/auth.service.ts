@@ -125,10 +125,13 @@ export class AuthService {
     const token = await this.generateToken(user.id, user.email, user.role);
     const response: { token: string; refreshToken?: string } = { token };
 
+    const refreshToken = await this.generateRefreshToken(user.id, false);
+
     if (rememberMe) {
       const refreshToken = await this.generateRefreshToken(user.id, true);
-      response.refreshToken = refreshToken;
     }
+
+    response.refreshToken = refreshToken;
 
     return response;
   }
@@ -252,7 +255,7 @@ export class AuthService {
 
   private async generateRefreshToken(userId: number, rememberMe = false): Promise<string> {
     const token = crypto.randomBytes(32).toString('hex');
-    let expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    let expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days
 
     if (rememberMe) {
       expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
