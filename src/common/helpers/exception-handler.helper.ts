@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { winstonLogger } from '../loggers/winston.logger';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -54,6 +55,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         },
       ];
     }
+
+    winstonLogger.error({
+      timestamp: new Date().toISOString(),
+      status,
+      path: ctx.getRequest().url,
+      message: exception.message || 'Unexpected error',
+      stack: exception.stack,
+    });
 
     response.status(status).json({
       success: false,

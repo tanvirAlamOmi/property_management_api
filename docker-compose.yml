@@ -1,0 +1,58 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    container_name: ilisted-app
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        npx prisma db seed &&
+        node dist/main"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - ilisted-network
+    restart: always
+  # ... (db and pgadmin services remain unchanged)
+  db:
+    image: postgres:15
+    container_name: ilisted-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ilisted
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - ilisted-network
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ilisted.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - ilisted-network
+volumes:
+  pgdata:
+  pgadmin_data:
+networks:
+  ilisted-network:
+    driver: bridge

@@ -11,4 +11,10 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+
+  @Public()
+  @Get('error')
+  throwError() {
+    throw new Error('Test error from /test/error route');
+  } 
 }
