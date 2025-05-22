@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, HttpCode, HttpStatus, UseGuards, UseInterceptors, UploadedFiles, BadRequestException, Query, Delete, Param, ParseIntPipe, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, HttpCode, HttpStatus, UseGuards, UseInterceptors, UploadedFiles, BadRequestException, Query, Delete, Param, ParseIntPipe, Put, Req } from '@nestjs/common';
 import { PropertyService } from './property.service';
 import { CreateDraftPropertyDto, CreatePropertyDto } from './dto/create-property.dto';
 import { ApiResponse } from '../../common/interfaces/api-response.interface';
@@ -9,10 +9,15 @@ import { UpdateDraftPropertyDto, UpdatePropertyDto } from './dto/update-property
 import { PropertyPublicationStatus } from '@prisma/client';
 import { BulkDeleteDto,   } from './dto/delete-property.dto';
 import { Public } from 'src/common/decorators/public.decorator';
-
+import { ConfigService } from '@nestjs/config';
+import { Request } from 'express'; 
+  
 @Controller('properties')
 export class PropertyController {
-  constructor(private readonly propertyService: PropertyService) {}
+  constructor(
+    private readonly propertyService: PropertyService,
+    private configService: ConfigService
+  ) {}
  
   @Get('options')
   @HttpCode(HttpStatus.OK)
@@ -107,18 +112,25 @@ export class PropertyController {
   }
 
 
-@Public()
-@Post('upload-images')
-@HttpCode(HttpStatus.OK)
-@UseInterceptors(ImageFilesInterceptor('images'))
-async uploadImages(
-  @UploadedFiles() files: Express.Multer.File[] | undefined,
-): Promise<ApiResponse<string[]>> {
-  if (!files || !Array.isArray(files)) {
-    throw new BadRequestException('No files uploaded');
+  @Public()
+  @Post('upload-images')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(ImageFilesInterceptor('images'))
+  async uploadImages(
+    @UploadedFiles() files: Express.Multer.File[] | undefined,
+    @Req() request: Request,
+  ): Promise<ApiResponse<string[]>> {
+    if (!files || !Array.isArray(files)) {
+      throw new BadRequestException('No files uploaded');
+    }
+    
+    const apiPrefix = this.configService.get<string>('API_PREFIX', 'api/v1')
+    const protocol = request.protocol;  
+    const host = request.get('host');  
+    const baseUrl = `${protocol}://${host}`; 
+    
+    const imageUrls = files.map(file => `${baseUrl}/${apiPrefix}/uploads/${file.filename}`);
+    return ResponseHelper.success(imageUrls, 'Images uploaded successfully');
   }
-  const imagePaths = files.map(file => `/uploads/${file.filename}`);
-  return ResponseHelper.success(imagePaths, 'Images uploaded successfully');
-}
 
 }
