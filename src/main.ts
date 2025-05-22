@@ -6,9 +6,12 @@ import { CustomValidationPipe } from './common/pipe/custom-validation.pipe';
 import { GlobalExceptionFilter } from './common/helpers/exception-handler.helper';
 import * as fs from 'fs';
 import * as express from 'express';
+import { ConfigService } from '@nestjs/config';
+import { NoCacheInterceptor } from './common/intercepters/no-cache.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);  
+  const configService = app.get(ConfigService);
 
   const uploadDir = join(__dirname, '..', 'uploads');
   if (!fs.existsSync(uploadDir)) {
@@ -22,7 +25,10 @@ async function bootstrap() {
   app.use('/api/v1/uploads', express.static(uploadDir));
 
   app.enableCors();
-  app.setGlobalPrefix('api/v1');
+
+  app.setGlobalPrefix(configService.get<string>('API_PREFIX', 'api/v1'));
+
+  app.useGlobalInterceptors(new NoCacheInterceptor());
 
   app.useGlobalFilters(new GlobalExceptionFilter());
 
